@@ -1,6 +1,18 @@
 """
 LibGuard - Library Vulnerability Scanner
+=========================================
 Scans project dependencies against the OSV (Open Source Vulnerabilities) database.
+
+Supported file types:
+    - requirements.txt  (Python / PyPI)
+    - package.json      (Node.js / npm)
+
+Usage:
+    python scanner.py <requirements.txt|package.json>
+
+Exit codes:
+    0 = No vulnerabilities found
+    1 = Vulnerabilities detected
 """
 
 import json
