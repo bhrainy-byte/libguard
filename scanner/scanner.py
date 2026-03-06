@@ -137,7 +137,12 @@ def get_severity(vuln: dict) -> str:
 
 
 def format_report(results: list[dict], total_scanned: int) -> str:
-    """Format the vulnerability report for terminal output."""
+    """
+    Format the vulnerability report for terminal output.
+    Shows each vulnerable package with CVE ID, severity, and summary.
+    Prints a final summary of total scanned, vulnerable, and clean packages.
+    Returns the full report as a string.
+    """
     lines = []
     lines.append("\n" + "="*60)
     lines.append("         LibGuard - Vulnerability Scan Report")
