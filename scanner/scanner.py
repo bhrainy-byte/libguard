@@ -34,7 +34,11 @@ OSV_API_URL = "https://api.osv.dev/v1/query"
 
 
 def parse_requirements_txt(filepath: str) -> list[dict]:
-    """Parse a requirements.txt file and return list of {name, version} dicts."""
+    """
+    Parse a requirements.txt file and return list of {name, version} dicts.
+    Handles pinned (==), minimum (>=), maximum (<=), compatible (~=) versions.
+    Skips blank lines and comments.
+    """
     packages = []
     try:
         with open(filepath, "r") as f:
