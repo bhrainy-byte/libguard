@@ -87,7 +87,11 @@ def parse_package_json(filepath: str) -> list[dict]:
 
 
 def check_vulnerability(package: dict, ecosystem: str = "PyPI") -> list[dict]:
-    """Query OSV API for vulnerabilities for a given package."""
+    """
+    Query the OSV (Open Source Vulnerabilities) API for a given package.
+    Returns a list of vulnerability dicts, empty list if none found.
+    Handles network timeouts and connection errors gracefully.
+    """
     payload = {
         "package": {
             "name": package["name"],
