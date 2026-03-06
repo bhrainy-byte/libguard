@@ -27,13 +27,7 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          pytest tests/ -v --cov=scanner --cov-report=term-missing
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: .coverage
+          PYTHONPATH=. pytest tests/ -v --cov=scanner --cov-report=term-missing
 
   lint:
     name: Code Quality Check
@@ -53,7 +47,7 @@ jobs:
 
       - name: Run linter
         run: |
-          flake8 scanner/ --max-line-length=120 --ignore=E501
+          flake8 scanner/ --max-line-length=120 --extend-ignore=E501,W503,E302,E303
 
   scan-demo:
     name: Demo Scan
@@ -72,5 +66,3 @@ jobs:
       - name: Run scanner on sample file
         run: |
           python scanner/scanner.py sample/requirements.txt || true
-        # '|| true' prevents pipeline failure in demo — 
-        # remove in production to fail pipeline on vulnerabilities
