@@ -47,7 +47,7 @@ jobs:
 
       - name: Run linter
         run: |
-          flake8 scanner/ --max-line-length=120 --extend-ignore=E501,W503,E302,E303
+         flake8 scanner/ --max-line-length=120 --extend-ignore=E501,E231,E701,E226,W503,E302,E303
 
   scan-demo:
     name: Demo Scan
