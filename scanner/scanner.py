@@ -23,12 +23,24 @@ import urllib.error
 from datetime import datetime
 from pathlib import Path
 
-# Setup logging
+# Setup logging — structured monitoring for scan activity
 logging.basicConfig(
     filename="libguard.log",
     level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
 )
+
+def health_check() -> bool:
+    """Check OSV API is reachable before scanning."""
+    import urllib.request
+    try:
+        urllib.request.urlopen("https://api.osv.dev", timeout=5)
+        logging.info("Health check passed — OSV API reachable")
+        return True
+    except Exception:
+        logging.warning("Health check failed — OSV API unreachable")
+        return False
 
 OSV_API_URL = "https://api.osv.dev/v1/query"
 
@@ -226,6 +238,9 @@ def scan(filepath: str) -> int:
     report = format_report(results, len(packages))
     print(report)
     logging.info("Scan complete")
+    logging.info(f"Total scanned: {len(packages)}")
+    logging.info(f"Total vulnerable: {sum(1 for r in results if r['vulnerabilities'])}")
+    logging.info(f"Total clean: {len(packages) - sum(1 for r in results if r['vulnerabilities'])}")
 
     # Exit code 1 if vulnerabilities found (for CI/CD pipeline integration)
     vulnerable = any(r["vulnerabilities"] for r in results)
