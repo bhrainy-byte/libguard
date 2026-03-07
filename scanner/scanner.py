@@ -102,6 +102,10 @@ def check_vulnerability(package: dict, ecosystem: str = "PyPI") -> list[dict]:
         payload["version"] = package["version"]
 
     try:
+        import ssl
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             OSV_API_URL,
@@ -109,7 +113,7 @@ def check_vulnerability(package: dict, ecosystem: str = "PyPI") -> list[dict]:
             headers={"Content-Type": "application/json"},
             method="POST"
         )
-        with urllib.request.urlopen(req, timeout=10) as response:
+        with urllib.request.urlopen(req, timeout=10, context=ctx) as response:
             result = json.loads(response.read().decode("utf-8"))
             vulns = result.get("vulns", [])
             logging.info(f"Found {len(vulns)} vulnerabilities for {package['name']}")
@@ -122,17 +126,29 @@ def check_vulnerability(package: dict, ecosystem: str = "PyPI") -> list[dict]:
 def get_severity(vuln: dict) -> str:
     """Extract highest severity from a vulnerability entry."""
     severities = vuln.get("severity", [])
+    
     if not severities:
-        # Try database_specific
         db = vuln.get("database_specific", {})
         return db.get("severity", "UNKNOWN")
     for s in severities:
         if s.get("type") == "CVSS_V3":
-            score = float(s.get("score", "0").split("/")[0] if "/" in s.get("score","0") else "0")
-            if score >= 9.0: return "CRITICAL"
-            if score >= 7.0: return "HIGH"
-            if score >= 4.0: return "MEDIUM"
-            return "LOW"
+            score_str = s.get("score", "")
+            try:
+                # CVSS scores look like "CVSS:3.1/AV:N/AC:L/..." — extract numeric score
+                if "CVSS" in score_str:
+                    db = vuln.get("database_specific", {})
+                    return db.get("severity", "UNKNOWN")
+                score = float(score_str)
+                if score >= 9.0:
+                    return "CRITICAL"
+                if score >= 7.0:
+                    return "HIGH"
+                if score >= 4.0:
+                    return "MEDIUM"
+                return "LOW"
+            except ValueError:
+                db = vuln.get("database_specific", {})
+                return db.get("severity", "UNKNOWN")
     return "UNKNOWN"
 
 
