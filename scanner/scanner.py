@@ -251,3 +251,4 @@ def test_parse_requirements_txt_greater_than_version(tmp_path):
     result = parse_requirements_txt(str(req_file))
     assert result[0]["name"] == "requests"
     assert result[0]["version"] == "2.28.0"
+    
