@@ -214,6 +214,8 @@ def scan(filepath: str) -> int:
     """
     path = Path(filepath)
     logging.info(f"Starting scan on {filepath}")
+    if not health_check():
+        print("[WARNING] OSV API may be unreachable — results may be incomplete")
 
     # Detect file type
     if path.name == "requirements.txt":
