@@ -141,6 +141,8 @@ def test_format_report_shows_cve_id():
     report = format_report(results, 1)
     assert "CVE-2023-9999" in report
     assert "django" in report
+
+
 def test_format_report_shows_package_version():
     """Test that package version appears in the report."""
     results = [
@@ -173,4 +175,40 @@ def test_parse_requirements_txt_greater_than_version(tmp_path):
     result = parse_requirements_txt(str(req_file))
     assert result[0]["name"] == "requests"
     assert result[0]["version"] == "2.28.0"
+
+
+def test_parse_package_json_multiple_deps(tmp_path):
+    """Test package.json with both dependencies and devDependencies."""
+    pkg_file = tmp_path / "package.json"
+    pkg_file.write_text(json.dumps({
+        "dependencies": {"express": "4.17.1", "axios": "0.21.0"},
+        "devDependencies": {"jest": "29.0.0"}
+    }))
+    result = parse_package_json(str(pkg_file))
+    assert len(result) == 3
+    names = [p["name"] for p in result]
+    assert "express" in names
+    assert "axios" in names
+    assert "jest" in names
+
+
+def test_format_report_clean_packages():
+    """Test report correctly counts clean packages."""
+    results = [
+        {"package": {"name": "requests", "version": "2.28.0"}, "vulnerabilities": []},
+        {"package": {"name": "flask", "version": "2.0.0"}, "vulnerabilities": []},
+    ]
+    report = format_report(results, 2)
+    assert "Clean: 2" in report
+    assert "Vulnerable: 0" in report
+
+
+def test_scan_unsupported_file(tmp_path):
+    """Test that unsupported file types trigger sys.exit."""
+    bad_file = tmp_path / "setup.cfg"
+    bad_file.write_text("[metadata]\nname=test")
+    import sys
+    with pytest.raises(SystemExit):
+        from scanner import scan
+        scan(str(bad_file))
     
