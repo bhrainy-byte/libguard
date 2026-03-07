@@ -126,7 +126,7 @@ def check_vulnerability(package: dict, ecosystem: str = "PyPI") -> list[dict]:
 def get_severity(vuln: dict) -> str:
     """Extract highest severity from a vulnerability entry."""
     severities = vuln.get("severity", [])
-    
+
     if not severities:
         db = vuln.get("database_specific", {})
         return db.get("severity", "UNKNOWN")
@@ -177,10 +177,13 @@ def format_report(results: list[dict], total_scanned: int) -> str:
             lines.append(f"\n🔴 {pkg['name']} {pkg.get('version', 'unknown')}")
             lines.append(f"   {len(result['vulnerabilities'])} vulnerability/vulnerabilities found:")
             for vuln in result["vulnerabilities"]:
-                cve_id = vuln.get("id", "N/A")
+                vuln_id = vuln.get("id", "N/A")
+                aliases = vuln.get("aliases", [])
+                cve_id = next((a for a in aliases if a.startswith("CVE-")), None)
+                display_id = f"{vuln_id} ({cve_id})" if cve_id else vuln_id
                 severity = get_severity(vuln)
                 summary = vuln.get("summary", "No summary available")[:80]
-                lines.append(f"   ├─ [{severity}] {cve_id}")
+                lines.append(f"   ├─ [{severity}] {display_id}")
                 lines.append(f"   │   {summary}")
 
     lines.append("\n" + "-"*60)
