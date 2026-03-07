@@ -141,3 +141,36 @@ def test_format_report_shows_cve_id():
     report = format_report(results, 1)
     assert "CVE-2023-9999" in report
     assert "django" in report
+def test_format_report_shows_package_version():
+    """Test that package version appears in the report."""
+    results = [
+        {"package": {"name": "flask", "version": "0.12.0"}, "vulnerabilities": [
+            {"id": "CVE-2023-1111", "summary": "Test vulnerability", "severity": []}
+        ]}
+    ]
+    report = format_report(results, 1)
+    assert "flask" in report
+    assert "0.12.0" in report
+
+
+def test_format_report_multiple_packages():
+    """Test report handles multiple packages correctly."""
+    results = [
+        {"package": {"name": "requests", "version": "2.18.0"}, "vulnerabilities": []},
+        {"package": {"name": "django", "version": "2.2.0"}, "vulnerabilities": []},
+        {"package": {"name": "flask", "version": "0.12.0"}, "vulnerabilities": []},
+    ]
+    report = format_report(results, 3)
+    assert "Scanned: 3" in report
+    assert "Vulnerable: 0" in report
+    assert "Clean: 3" in report
+
+
+def test_parse_requirements_txt_greater_than_version(tmp_path):
+    """Test parsing >= version format."""
+    req_file = tmp_path / "requirements.txt"
+    req_file.write_text("requests>=2.28.0\n")
+    result = parse_requirements_txt(str(req_file))
+    assert result[0]["name"] == "requests"
+    assert result[0]["version"] == "2.28.0"
+    
